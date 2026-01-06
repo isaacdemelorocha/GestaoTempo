@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestão de Tempo - GOV.BR</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --gov-blue: #1351b4;
+            --gov-dark-blue: #0c326f;
+            --gov-gray-light: #f8f9fa;
+            --gov-gray-border: #e1e4e8;
+            --q1-danger: #d32f2f;
+            --q2-success: #2e7d32;
+            --q3-warning: #ed6c02;
+            --q4-info: #0288d1;
+        }
+
+        body {
+            background-color: var(--gov-gray-light);
+            font-family: "Rawline", helvetica, arial, sans-serif;
+            color: #333;
+            margin: 0;
+            padding-bottom: 100px;
+        }
+
+        .br-header {
+            background: #ffffff;
+            border-bottom: 2px solid var(--gov-gray-border);
+            padding: 12px 0;
+        }
+        .br-header .site-name {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #333;
+            padding-left: 16px;
+        }
+
+        .matrix-container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr); 
+            gap: 20px;
+            padding: 20px 0;
+        }
+
+        @media (max-width: 768px) {
+            .matrix-container { grid-template-columns: 1fr; }
+        }
+
+        .br-card {
+            background: #ffffff;
+            border: 1px solid var(--gov-gray-border);
+            border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            min-height: 300px;
+        }
+
+        .br-card-header {
+            padding: 12px 20px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            border-bottom: 1px solid var(--gov-gray-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* UX Writing: Estilo da descrição */
+        .q-description {
+            padding: 10px 20px 0 20px;
+            font-size: 0.75rem;
+            color: #666;
+            line-height: 1.4;
+            font-style: italic;
+        }
+
+        .q1 .br-card-header { border-top: 4px solid var(--q1-danger); color: var(--q1-danger); }
+        .q2 .br-card-header { border-top: 4px solid var(--q2-success); color: var(--q2-success); }
+        .q3 .br-card-header { border-top: 4px solid var(--q3-warning); color: var(--q3-warning); }
+        .q4 .br-card-header { border-top: 4px solid var(--q4-info); color: var(--q4-info); }
+
+        .br-input-wrapper { padding: 10px 20px 15px 20px; }
+        .br-input {
+            width: 100%;
+            border: 1px solid #888;
+            border-radius: 4px;
+            padding: 8px 12px;
+            font-size: 0.9rem;
+            outline-color: var(--gov-blue);
+        }
+
+        .task-list { padding: 0 20px 20px 20px; }
+        .task-item {
+            display: flex;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--gov-gray-border);
+        }
+
+        .btn-check-task { background: none; border: none; font-size: 1.2rem; margin-right: 12px; padding: 0; cursor: pointer; }
+        .bi-check-circle-fill { color: var(--q2-success); }
+        .bi-circle { color: #ccc; }
+
+        .task-label { flex-grow: 1; font-size: 0.9rem; cursor: pointer; }
+        .task-label.completed { text-decoration: line-through; color: #888; }
+
+        .btn-delete { background: none; border: none; color: #ccc; transition: 0.2s; }
+        .task-item:hover .btn-delete { color: var(--q1-danger); }
+
+        .pomodoro-bar {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--gov-dark-blue);
+            color: white;
+            padding: 10px 30px;
+            border-radius: 50px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            z-index: 1000;
+        }
+
+        .btn-timer-toggle {
+            background: #fff;
+            color: var(--gov-dark-blue);
+            border: none;
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+    </style>
+</head>
+<body>
+
+<header class="br-header">
+    <div class="container d-flex align-items-center">
+        <span class="site-name">Planejar & Priorizar</span>
+        <div class="ms-auto d-none d-md-block text-muted small">Matriz de Eisenhower</div>
+    </div>
+</header>
+
+<div class="container mt-4">
+    <div class="matrix-container">
+        <div class="br-card q1">
+            <div class="br-card-header"><span><i class="bi bi-fire"></i> Fazer Agora</span> <small>Crise</small></div>
+            <p class="q-description text-danger">Problemas imediatos que exigem sua atenção agora.</p>
+            <div class="br-input-wrapper">
+                <input type="text" class="br-input" placeholder="+ Adicionar e Enter" onkeypress="handleNewTask(event, '1')">
+            </div>
+            <div id="list-1" class="task-list"></div>
+        </div>
+
+        <div class="br-card q2">
+            <div class="br-card-header"><span><i class="bi bi-calendar-event"></i> Planejar</span> <small>Estratégico</small></div>
+            <p class="q-description text-success">Atividades importantes, mas sem prazo crítico. Agende-as.</p>
+            <div class="br-input-wrapper">
+                <input type="text" class="br-input" placeholder="+ Adicionar e Enter" onkeypress="handleNewTask(event, '2')">
+            </div>
+            <div id="list-2" class="task-list"></div>
+        </div>
+
+        <div class="br-card q3">
+            <div class="br-card-header"><span><i class="bi bi-people"></i> Delegar</span> <small>Operacional</small></div>
+            <p class="q-description text-warning">Tarefas urgentes que não precisam ser feitas por você.</p>
+            <div class="br-input-wrapper">
+                <input type="text" class="br-input" placeholder="+ Adicionar e Enter" onkeypress="handleNewTask(event, '3')">
+            </div>
+            <div id="list-3" class="task-list"></div>
+        </div>
+
+        <div class="br-card q4">
+            <div class="br-card-header"><span><i class="bi bi-trash"></i> Eliminar</span> <small>Distração</small></div>
+            <p class="q-description text-info">Atividades que consomem tempo mas não geram valor. Evite.</p>
+            <div class="br-input-wrapper">
+                <input type="text" class="br-input" placeholder="+ Adicionar e Enter" onkeypress="handleNewTask(event, '4')">
+            </div>
+            <div id="list-4" class="task-list"></div>
+        </div>
+    </div>
+</div>
+
+<div class="pomodoro-bar">
+    <span class="small fw-bold text-uppercase">Foco</span>
+    <span class="fs-4 fw-bold" id="timer" style="min-width: 70px; text-align: center;">25:00</span>
+    <button class="btn-timer-toggle" onclick="toggleTimer()" id="btnPlay"><i class="bi bi-play-fill"></i></button>
+</div>
+
+<script>
+    let tasks = JSON.parse(localStorage.getItem('gov_matrix_2x2')) || [];
+    let timerInterval;
+
+    function handleNewTask(e, q) {
+        if (e.key === 'Enter' && e.target.value.trim() !== '') {
+            tasks.push({ id: Date.now(), title: e.target.value, q: q, completed: false });
+            e.target.value = '';
+            saveAndRender();
+        }
+    }
+
+    function render() {
+        document.querySelectorAll('.task-list').forEach(el => el.innerHTML = '');
+        tasks.forEach(t => {
+            const list = document.getElementById(`list-${t.q}`);
+            if (list) {
+                const item = document.createElement('div');
+                item.className = 'task-item';
+                item.innerHTML = `
+                    <button class="btn-check-task" onclick="toggle(${t.id})">
+                        <i class="bi ${t.completed ? 'bi-check-circle-fill' : 'bi-circle'}"></i>
+                    </button>
+                    <span class="task-label ${t.completed ? 'completed' : ''}" onclick="editTask(${t.id})">${t.title}</span>
+                    <button class="btn-delete" onclick="remove(${t.id})"><i class="bi bi-trash"></i></button>
+                `;
+                list.appendChild(item);
+            }
+        });
+    }
+
+    function toggle(id) {
+        tasks = tasks.map(t => t.id === id ? {...t, completed: !t.completed} : t);
+        saveAndRender();
+    }
+
+    function remove(id) {
+        tasks = tasks.filter(t => t.id !== id);
+        saveAndRender();
+    }
+
+    function editTask(id) {
+        const task = tasks.find(t => t.id === id);
+        const novoTexto = prompt("Editar atividade:", task.title);
+        if (novoTexto) {
+            tasks = tasks.map(t => t.id === id ? {...t, title: novoTexto} : t);
+            saveAndRender();
+        }
+    }
+
+    function saveAndRender() {
+        localStorage.setItem('gov_matrix_2x2', JSON.stringify(tasks));
+        render();
+    }
+
+    function toggleTimer() {
+        if(timerInterval) {
+            clearInterval(timerInterval);
+            timerInterval = null;
+            document.getElementById('btnPlay').innerHTML = '<i class="bi bi-play-fill"></i>';
+        } else {
+            let timeLeft = 25 * 60;
+            document.getElementById('btnPlay').innerHTML = '<i class="bi bi-pause-fill"></i>';
+            timerInterval = setInterval(() => {
+                let mins = Math.floor(timeLeft / 60);
+                let secs = timeLeft % 60;
+                document.getElementById('timer').innerText = `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    alert("Pomodoro Concluído!");
+                }
+                timeLeft--;
+            }, 1000);
+        }
+    }
+
+    render();
+</script>
+</body>
+</html>
